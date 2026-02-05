@@ -36,7 +36,6 @@ def find_max_quantum(data_list, target_key='score'):
     if N == 0: return None
     
     n_qubits = math.ceil(math.log2(N))
-    # Ideal simulator (no noise model provided)
     backend = AerSimulator()
     
     valid_items = [i for i, item in enumerate(data_list) if item.get('validity') is True]
@@ -44,7 +43,6 @@ def find_max_quantum(data_list, target_key='score'):
     
     current_best_idx = random.choice(valid_items)
     
-    # Dürr-Høyer iterative improvement
     for _ in range(int(math.sqrt(N)) + 1):
         threshold = data_list[current_best_idx][target_key]
         better_indices = [
@@ -57,8 +55,6 @@ def find_max_quantum(data_list, target_key='score'):
         qc = QuantumCircuit(n_qubits, n_qubits)
         qc.h(range(n_qubits))
         
-        # Calculate optimal Grover iterations for M matches
-        # M = len(better_indices), N_space = 2^n_qubits
         steps = max(1, round((math.pi/4) * math.sqrt((2**n_qubits)/len(better_indices))))
         
         oracle = flexible_grover_oracle(n_qubits, better_indices)
@@ -70,10 +66,7 @@ def find_max_quantum(data_list, target_key='score'):
             
         qc.measure(range(n_qubits), range(n_qubits))
         
-        # Transpile for the ideal backend
         tqc = transpile(qc, backend)
-        # Using 1 shot could theoretically work in an ideal scenario, 
-        # but 256 ensures we catch the peak of the probability distribution.
         counts = backend.run(tqc, shots=256).result().get_counts()
         measured_idx = int(max(counts, key=counts.get), 2)
         
@@ -88,7 +81,6 @@ def run_maneuver_search(file_path):
     try:
         with open(file_path, 'r') as f:
             data_list = json.load(f)
-            # Basic normalization if JSON is wrapped in a dict
             if isinstance(data_list, dict):
                 data_list = data_list.get('maneuvers', list(data_list.values())[0])
                 
@@ -98,5 +90,4 @@ def run_maneuver_search(file_path):
         print(f"Error: {e}")
 
 if __name__ == '__main__':
-    # Ensure 'maneuver_demo.json' exists in your directory
     run_maneuver_search('maneuver_demo.json')
