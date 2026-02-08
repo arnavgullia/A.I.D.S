@@ -1,6 +1,8 @@
 import json
 import math
 import matplotlib.pyplot as plt
+import io
+import base64
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 from qiskit.visualization import plot_histogram
@@ -43,7 +45,7 @@ def build_diffuser(n_qubits):
     return diff_qc
 
 
-def run_quantum_maneuver_search(file_path):
+def run_quantum_maneuver_search(file_path, return_image=False):
 
     with open(file_path, 'r') as f:
         data = json.load(f)
@@ -54,7 +56,7 @@ def run_quantum_maneuver_search(file_path):
 
     if best_idx is None:
         print("No valid maneuvers found.")
-        return
+        return None
 
     n_qubits = math.ceil(math.log2(len(maneuvers)))
     qc = QuantumCircuit(n_qubits)
@@ -77,11 +79,25 @@ def run_quantum_maneuver_search(file_path):
     counts = result.get_counts()
 
     print(f"Targeting Maneuver at Index: {best_idx}")
-    plot_histogram(counts, title="Quantum Search Results (Amplified Target)")
-    plt.show()
+    
+    if return_image:
+        plt.figure()
+        plot_histogram(counts, title="Quantum Search Results (Amplified Target)")
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode()
+        plt.close()
+        return {
+            "maneuver": maneuvers[best_idx],
+            "plot_image": f"data:image/png;base64,{plot_url}"
+        }
+    else:
+        plot_histogram(counts, title="Quantum Search Results (Amplified Target)")
+        plt.show()
 
-    print("\n--- Quantum Search Result ---")
-    print(json.dumps(maneuvers[best_idx], indent=4))
+        print("\n--- Quantum Search Result ---")
+        print(json.dumps(maneuvers[best_idx], indent=4))
 
 if __name__ == '__main__':
     run_quantum_maneuver_search('maneuver_demo.json')
