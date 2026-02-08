@@ -1,93 +1,87 @@
 import json
 import math
-import random
+import matplotlib.pyplot as plt
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
 
-def flexible_grover_oracle(n_qubits, target_indices):
-    qc = QuantumCircuit(n_qubits)
-    for idx in target_indices:
-        target_bin = format(idx, f'0{n_qubits}b')[::-1]
-        for i, bit in enumerate(target_bin):
-            if bit == '0': qc.x(i)
-        
-        # Phase flip
-        qc.h(n_qubits - 1)
-        qc.mcx(list(range(n_qubits - 1)), n_qubits - 1)
-        qc.h(n_qubits - 1)
-        
-        for i, bit in enumerate(target_bin):
-            if bit == '0': qc.x(i)
-    return qc
 
-def diffuser(n_qubits):
-    qc = QuantumCircuit(n_qubits)
-    qc.h(range(n_qubits))
-    qc.x(range(n_qubits))
-    qc.h(n_qubits - 1)
-    qc.mcx(list(range(n_qubits - 1)), n_qubits - 1)
-    qc.h(n_qubits - 1)
-    qc.x(range(n_qubits))
-    qc.h(range(n_qubits))
-    return qc
+def build_oracle(n_qubits, target_index):
 
-def find_max_quantum(data_list, target_key='score'):
-    N = len(data_list)
-    if N == 0: return None
+    oracle_qc = QuantumCircuit(n_qubits, name="Oracle")
+    target_bin = format(target_index, f'0{n_qubits}b')[::-1]
     
-    n_qubits = math.ceil(math.log2(N))
+    for i, bit in enumerate(target_bin):
+        if bit == '0': oracle_qc.x(i)
+    
+    oracle_qc.h(n_qubits - 1)
+    oracle_qc.mcx(list(range(n_qubits - 1)), n_qubits - 1)
+    oracle_qc.h(n_qubits - 1)
+    
+    for i, bit in enumerate(target_bin):
+        if bit == '0': oracle_qc.x(i)
+    
+    print("\n--- Oracle Circuit ---")
+    print(oracle_qc.draw(output='text'))
+    return oracle_qc
+
+
+def build_diffuser(n_qubits):
+
+    diff_qc = QuantumCircuit(n_qubits, name="Diffuser")
+    diff_qc.h(range(n_qubits))
+    diff_qc.x(range(n_qubits))
+    diff_qc.h(n_qubits - 1)
+    diff_qc.mcx(list(range(n_qubits - 1)), n_qubits - 1)
+    diff_qc.h(n_qubits - 1)
+    diff_qc.x(range(n_qubits))
+    diff_qc.h(range(n_qubits))
+
+    print("\n--- Diffuser Circuit ---")
+    print(diff_qc.draw(output='text'))
+
+    return diff_qc
+
+
+def run_quantum_maneuver_search(file_path):
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+        maneuvers = data.get('maneuvers', [])
+
+    best_idx = max((i for i, m in enumerate(maneuvers) if m.get('validity')), 
+                   key=lambda i: maneuvers[i].get('score', 0), default=None)
+
+    if best_idx is None:
+        print("No valid maneuvers found.")
+        return
+
+    n_qubits = math.ceil(math.log2(len(maneuvers)))
+    qc = QuantumCircuit(n_qubits)
+    
+    qc.h(range(n_qubits))
+    
+    iterations = max(1, round(math.pi/4 * math.sqrt(2**n_qubits)))
+    oracle = build_oracle(n_qubits, best_idx)
+    diffuser = build_diffuser(n_qubits)
+
+    for _ in range(iterations):
+        qc.append(oracle, range(n_qubits))
+        qc.append(diffuser, range(n_qubits))
+
+    qc.measure_all()
+
     backend = AerSimulator()
-    
-    valid_items = [i for i, item in enumerate(data_list) if item.get('validity') is True]
-    if not valid_items: return None
-    
-    current_best_idx = random.choice(valid_items)
-    
-    for _ in range(int(math.sqrt(N)) + 1):
-        threshold = data_list[current_best_idx][target_key]
-        better_indices = [
-            i for i, item in enumerate(data_list) 
-            if item.get(target_key, 0) > threshold and item.get('validity') is True
-        ]
-        
-        if not better_indices: break
-            
-        qc = QuantumCircuit(n_qubits, n_qubits)
-        qc.h(range(n_qubits))
-        
-        steps = max(1, round((math.pi/4) * math.sqrt((2**n_qubits)/len(better_indices))))
-        
-        oracle = flexible_grover_oracle(n_qubits, better_indices)
-        diff = diffuser(n_qubits)
-        
-        for _ in range(steps):
-            qc.compose(oracle, inplace=True)
-            qc.compose(diff, inplace=True)
-            
-        qc.measure(range(n_qubits), range(n_qubits))
-        
-        tqc = transpile(qc, backend)
-        counts = backend.run(tqc, shots=256).result().get_counts()
-        measured_idx = int(max(counts, key=counts.get), 2)
-        
-        if measured_idx < N:
-            item = data_list[measured_idx]
-            if item.get('validity') is True and item.get(target_key, 0) > threshold:
-                current_best_idx = measured_idx
+    tqc = transpile(qc, backend)
+    result = backend.run(tqc, shots=2048).result()
+    counts = result.get_counts()
 
-    return data_list[current_best_idx]
+    print(f"Targeting Maneuver at Index: {best_idx}")
+    plot_histogram(counts, title="Quantum Search Results (Amplified Target)")
+    plt.show()
 
-def run_maneuver_search(file_path):
-    try:
-        with open(file_path, 'r') as f:
-            data_list = json.load(f)
-            if isinstance(data_list, dict):
-                data_list = data_list.get('maneuvers', list(data_list.values())[0])
-                
-        winner = find_max_quantum(data_list, 'score')
-        print(json.dumps(winner, indent=4) if winner else "No valid results.")
-    except Exception as e:
-        print(f"Error: {e}")
+    print("\n--- Quantum Search Result ---")
+    print(json.dumps(maneuvers[best_idx], indent=4))
 
 if __name__ == '__main__':
-    run_maneuver_search('maneuver_demo.json')
+    run_quantum_maneuver_search('maneuver_demo.json')
