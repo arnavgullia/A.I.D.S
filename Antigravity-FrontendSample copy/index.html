@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project: 𝙰𝚎𝚐𝚒𝚜</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <!-- Top Bar with Title (Grey, fades in on scroll) -->
+  <div id="top-bar">
+    <span id="bar-title">Project: 𝙰𝚎𝚐𝚒𝚜</span>
+    <div id="connection-status" class="status-disconnected">
+      <span class="status-dot"></span>
+      <span class="status-text">Disconnected</span>
+    </div>
+  </div>
+
+  <!-- Video Background Container -->
+  <div class="video-background" id="video-bg">
+    <iframe id="yt-video"
+      src="https://www.youtube.com/embed/Qsd8LwscwP4?autoplay=1&mute=1&controls=0&loop=1&playlist=Qsd8LwscwP4&playsinline=1&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <!-- Main Title (Fixed centered, white text) -->
+  <div id="title-container">
+    <h1 id="main-title">Project: 𝙰𝚎𝚐𝚒𝚜</h1>
+    <p id="subtitle">Planetary Defense System</p>
+  </div>
+
+  <!-- Scroll Container -->
+  <div class="scroll-container">
+    <!-- Spacer for the video section -->
+    <div class="hero-spacer"></div>
+
+    <!-- Dashboard Section -->
+    <div class="content-section" id="dashboard">
+      <div class="dashboard-container">
+        
+        <!-- Asteroid Input Panel -->
+        <div class="panel panel-input">
+          <h2 class="panel-title">🎯 Target Asteroid</h2>
+          
+          <div class="demo-buttons">
+            <button class="btn btn-demo" data-demo="demo1">Apophis</button>
+            <button class="btn btn-demo" data-demo="demo2">Small Rock</button>
+            <button class="btn btn-demo" data-demo="demo3">Bennu</button>
+          </div>
+          
+          <form id="asteroid-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="name" value="Apophis-99942" required>
+              </div>
+              <div class="form-group">
+                <label>Diameter (m)</label>
+                <input type="number" id="diameter" value="340" required>
+              </div>
+              <div class="form-group">
+                <label>Mass (kg)</label>
+                <input type="number" id="mass" value="2.7e10" step="any" required>
+              </div>
+              <div class="form-group">
+                <label>Velocity (km/s)</label>
+                <input type="number" id="velocity" value="30" step="0.1" required>
+              </div>
+              <div class="form-group">
+                <label>Composition</label>
+                <select id="composition">
+                  <option value="Stony">Stony</option>
+                  <option value="Stony-Iron" selected>Stony-Iron</option>
+                  <option value="Metallic">Metallic</option>
+                  <option value="Rubble Pile">Rubble Pile</option>
+                  <option value="Icy">Icy</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Impact Probability</label>
+                <input type="number" id="probability" value="0.02" step="0.001" min="0" max="1" required>
+              </div>
+              <div class="form-group full-width">
+                <label>Days Until Approach</label>
+                <input type="number" id="days" value="1000" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="analyze-btn">
+              ⚡ Analyze Threat
+            </button>
+          </form>
+        </div>
+
+        <!-- Agent Progress Panel -->
+        <div class="panel panel-progress">
+          <h2 class="panel-title">🤖 Agent Pipeline</h2>
+          
+          <div class="agent-timeline">
+            <!-- Agent 1 -->
+            <div class="agent-step" id="agent1-step">
+              <div class="agent-icon">🔍</div>
+              <div class="agent-info">
+                <div class="agent-name">Agent 1: Intelligence Officer</div>
+                <div class="agent-status" id="agent1-status">Waiting...</div>
+                <div class="agent-result" id="agent1-result"></div>
+              </div>
+              <div class="agent-indicator"></div>
+            </div>
+            
+            <!-- Agent 2 -->
+            <div class="agent-step" id="agent2-step">
+              <div class="agent-icon">🧠</div>
+              <div class="agent-info">
+                <div class="agent-name">Agent 2: Strategic Planner</div>
+                <div class="agent-status" id="agent2-status">Waiting...</div>
+                <div class="agent-result" id="agent2-result"></div>
+              </div>
+              <div class="agent-indicator"></div>
+            </div>
+            
+            <!-- Quantum -->
+            <div class="agent-step" id="quantum-step">
+              <div class="agent-icon">⚛️</div>
+              <div class="agent-info">
+                <div class="agent-name">Quantum Optimization</div>
+                <div class="agent-status" id="quantum-status">Waiting...</div>
+                <div class="agent-result" id="quantum-result"></div>
+              </div>
+              <div class="agent-indicator"></div>
+            </div>
+            
+            <!-- Agent 3 -->
+            <div class="agent-step" id="agent3-step">
+              <div class="agent-icon">🔒</div>
+              <div class="agent-info">
+                <div class="agent-name">Agent 3: Safety Validator</div>
+                <div class="agent-status" id="agent3-status">Waiting...</div>
+                <div class="agent-result" id="agent3-result"></div>
+              </div>
+              <div class="agent-indicator"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="panel panel-results">
+          <h2 class="panel-title">📊 Mission Results</h2>
+          
+          <div id="results-placeholder">
+            <p>Start analysis to see results...</p>
+          </div>
+          
+          <div id="results-content" class="hidden">
+            <!-- Threat Assessment -->
+            <div class="result-card" id="threat-card">
+              <h3>🎯 Threat Assessment</h3>
+              <div class="result-grid">
+                <div class="result-item">
+                  <span class="result-label">Risk Score</span>
+                  <span class="result-value" id="risk-score">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Kinetic Energy</span>
+                  <span class="result-value" id="kinetic-energy">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Damage Category</span>
+                  <span class="result-value" id="damage-category">-</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quantum Results -->
+            <div class="result-card" id="quantum-card">
+              <h3>⚛️ Quantum Optimization</h3>
+              <div class="result-grid">
+                <div class="result-item">
+                  <span class="result-label">Optimal Index</span>
+                  <span class="result-value" id="optimal-index">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Quantum Advantage</span>
+                  <span class="result-value highlight" id="quantum-advantage">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Success Probability</span>
+                  <span class="result-value" id="success-prob">-</span>
+                </div>
+              </div>
+              <div class="optimal-params" id="optimal-params">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+            
+            <!-- Safety Verdict -->
+            <div class="result-card" id="safety-card">
+              <h3>🔒 Safety Evaluation</h3>
+              <div class="result-grid">
+                <div class="result-item">
+                  <span class="result-label">Fragmentation Risk</span>
+                  <span class="result-value" id="frag-risk">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Miss Distance</span>
+                  <span class="result-value" id="miss-distance">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Confidence</span>
+                  <span class="result-value" id="confidence">-</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Final Verdict -->
+            <div class="verdict-banner" id="verdict-banner">
+              <span class="verdict-icon" id="verdict-icon">⏳</span>
+              <span class="verdict-text" id="verdict-text">Analyzing...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>
