@@ -1,9 +1,0 @@
-{
-  "name": "antigravity-agenticais-backend",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "echo \"No frontend in this folder. Run the frontend in ../Antigravity-FrontendSample copy with 'npm run dev'\" && exit 1"
-  },
-  "description": "Light wrapper to avoid accidental npm runs in the backend folder."
-}
